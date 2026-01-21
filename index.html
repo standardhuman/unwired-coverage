@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Service Availability | Unwired</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Work+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="uwc-container">
+    <div class="uwc-card">
+      <h1 class="uwc-title">Check Service Availability</h1>
+      <p class="uwc-subtitle">Enter your address to see if Unwired service is available at your location.</p>
+
+      <form id="coverage-form" class="uwc-form">
+        <div class="uwc-field">
+          <label for="address-input" class="uwc-label">Street Address</label>
+          <input
+            type="text"
+            id="address-input"
+            class="uwc-input"
+            placeholder="Start typing your address..."
+            autocomplete="off"
+            required
+          >
+        </div>
+
+        <div class="uwc-field uwc-field-unit">
+          <label for="unit-input" class="uwc-label">Unit/Apt (optional)</label>
+          <input
+            type="text"
+            id="unit-input"
+            class="uwc-input"
+            placeholder="Unit, Apt, Suite"
+          >
+        </div>
+
+        <button type="submit" id="check-btn" class="uwc-button" disabled>
+          Check Availability
+        </button>
+      </form>
+
+      <div id="result" class="uwc-result" hidden>
+        <!-- Result content injected by JS -->
+      </div>
+
+      <div id="loading" class="uwc-loading" hidden>
+        <div class="uwc-spinner"></div>
+        <span>Checking coverage...</span>
+      </div>
+    </div>
+
+    <div id="init-loading" class="uwc-init-loading">
+      <div class="uwc-spinner"></div>
+      <span>Loading coverage data...</span>
+    </div>
+  </div>
+
+  <script>
+    // Google Places API key - set via data attribute or environment
+    window.GOOGLE_PLACES_API_KEY = document.currentScript?.dataset?.apiKey || '';
+  </script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
