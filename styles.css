@@ -218,7 +218,8 @@
   z-index: 10;
 }
 
-.uwc-init-loading[hidden] {
+.uwc-init-loading[hidden],
+.uwc-loading[hidden] {
   display: none;
 }
 
