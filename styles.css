@@ -218,6 +218,10 @@
   z-index: 10;
 }
 
+.uwc-init-loading[hidden] {
+  display: none;
+}
+
 .uwc-spinner {
   width: 20px;
   height: 20px;
