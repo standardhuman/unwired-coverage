@@ -75,7 +75,7 @@ async function loadCoverageData() {
  * Load Google Places API and initialize autocomplete
  */
 async function loadGooglePlaces() {
-  const apiKey = window.GOOGLE_PLACES_API_KEY;
+  const apiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
 
   if (!apiKey) {
     // For development, allow manual coordinate entry
