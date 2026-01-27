@@ -6,6 +6,12 @@
 import RBush from 'rbush';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { point, polygon } from '@turf/helpers';
+import distance from '@turf/distance';
+import nearestPointOnLine from '@turf/nearest-point-on-line';
+import polygonToLine from '@turf/polygon-to-line';
+
+// Configuration
+const MAYBE_DISTANCE_MILES = 2; // Show "maybe" if within this distance of coverage
 
 // DOM elements
 const addressInput = document.getElementById('address-input');
@@ -147,6 +153,7 @@ function initAutocomplete() {
 
 /**
  * Check if a point is within coverage area
+ * Returns: { status: 'covered' | 'maybe' | 'not_covered', distanceMiles?: number }
  */
 function checkCoverage(lng, lat) {
   const startTime = performance.now();
@@ -172,13 +179,68 @@ function checkCoverage(lng, lat) {
     if (booleanPointInPolygon(pt, poly)) {
       const elapsed = (performance.now() - startTime).toFixed(2);
       console.log(`Match found in polygon ${candidate.id} (${elapsed}ms)`);
-      return true;
+      return { status: 'covered' };
     }
   }
 
+  // Not in coverage - check if within MAYBE_DISTANCE_MILES of any polygon
+  const nearestDistance = findNearestPolygonDistance(pt, lng, lat);
   const elapsed = (performance.now() - startTime).toFixed(2);
-  console.log(`No coverage found (${elapsed}ms)`);
-  return false;
+
+  if (nearestDistance !== null && nearestDistance <= MAYBE_DISTANCE_MILES) {
+    console.log(`Maybe coverage - ${nearestDistance.toFixed(2)} miles from nearest polygon (${elapsed}ms)`);
+    return { status: 'maybe', distanceMiles: nearestDistance };
+  }
+
+  console.log(`No coverage found, nearest polygon ${nearestDistance?.toFixed(2) ?? 'unknown'} miles away (${elapsed}ms)`);
+  return { status: 'not_covered', distanceMiles: nearestDistance };
+}
+
+/**
+ * Find distance to the nearest coverage polygon boundary
+ * Uses expanded bounding box search to find nearby polygons
+ */
+function findNearestPolygonDistance(pt, lng, lat) {
+  // Search radius in degrees (roughly MAYBE_DISTANCE_MILES * 2 to be safe)
+  // 1 degree lat ≈ 69 miles, 1 degree lng varies by latitude
+  const searchRadiusDeg = (MAYBE_DISTANCE_MILES * 2) / 69;
+
+  // Query spatial index with expanded bounding box
+  const nearbyCandidates = spatialIndex.search({
+    minX: lng - searchRadiusDeg,
+    minY: lat - searchRadiusDeg,
+    maxX: lng + searchRadiusDeg,
+    maxY: lat + searchRadiusDeg,
+  });
+
+  if (nearbyCandidates.length === 0) {
+    return null;
+  }
+
+  let minDistance = Infinity;
+
+  for (const candidate of nearbyCandidates) {
+    const feature = coverageData.features[candidate.id];
+    const poly = polygon(feature.coordinates);
+
+    // Convert polygon to line (boundary)
+    const line = polygonToLine(poly);
+
+    // Find nearest point on the polygon boundary
+    // Handle both single line and multi-line (from polygons with holes)
+    const lines = line.type === 'FeatureCollection' ? line.features : [line];
+
+    for (const lineFeature of lines) {
+      const nearest = nearestPointOnLine(lineFeature, pt, { units: 'miles' });
+      const dist = distance(pt, nearest, { units: 'miles' });
+
+      if (dist < minDistance) {
+        minDistance = dist;
+      }
+    }
+  }
+
+  return minDistance === Infinity ? null : minDistance;
 }
 
 /**
@@ -193,6 +255,24 @@ function showSuccess(address) {
     <div class="uwc-result-message">Unwired service is available at this address.</div>
     <a href="#" class="uwc-result-action">
       Get Started
+      <span>→</span>
+    </a>
+  `;
+}
+
+/**
+ * Display maybe result (close to coverage area)
+ */
+function showMaybe(address, distanceMiles) {
+  resultDiv.hidden = false;
+  resultDiv.className = 'uwc-result uwc-result--maybe';
+  const distanceText = distanceMiles ? ` (${distanceMiles.toFixed(1)} miles from our coverage area)` : '';
+  resultDiv.innerHTML = `
+    <div class="uwc-result-icon">?</div>
+    <div class="uwc-result-title">Service may be available</div>
+    <div class="uwc-result-message">This address is very close to our coverage area${distanceText}. Contact us to check if we can serve you!</div>
+    <a href="#" class="uwc-result-action">
+      Contact Us
       <span>→</span>
     </a>
   `;
@@ -248,10 +328,12 @@ form.addEventListener('submit', async (e) => {
   await new Promise(resolve => setTimeout(resolve, 300));
 
   try {
-    const inCoverage = checkCoverage(selectedPlace.lng, selectedPlace.lat);
+    const result = checkCoverage(selectedPlace.lng, selectedPlace.lat);
 
-    if (inCoverage) {
+    if (result.status === 'covered') {
       showSuccess(selectedPlace.address);
+    } else if (result.status === 'maybe') {
+      showMaybe(selectedPlace.address, result.distanceMiles);
     } else {
       showNotCovered(selectedPlace.address);
     }

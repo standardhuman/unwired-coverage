@@ -16,7 +16,10 @@
   },
   "dependencies": {
     "@turf/boolean-point-in-polygon": "^7.1.0",
+    "@turf/distance": "^7.3.2",
     "@turf/helpers": "^7.1.0",
+    "@turf/nearest-point-on-line": "^7.3.2",
+    "@turf/polygon-to-line": "^7.3.2",
     "fast-xml-parser": "^4.5.0",
     "rbush": "^4.0.1"
   }

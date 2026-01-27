@@ -9,6 +9,7 @@ A fast, embeddable address coverage checker that determines if a location falls 
 - **Google Places Autocomplete** - Address input with smart suggestions
 - **Fast spatial queries** - Checks 3,009 coverage polygons in <10ms using RBush spatial indexing
 - **Polygon hole support** - Correctly handles 150 polygons with interior exclusion zones
+- **"Maybe" coverage zone** - Addresses near (within 2 miles of) coverage boundaries show "Service may be available" instead of outright rejection
 - **Embeddable** - Self-contained component for integration into unwiredltd.com
 - **Mobile responsive** - Clean UI that works on all screen sizes
 
@@ -57,6 +58,17 @@ unwired-coverage/
 
 ## Configuration
 
+### "Maybe" Coverage Distance
+
+Addresses outside coverage but within a certain distance of a coverage boundary show a "Service may be available" result instead of rejection. This is configurable in `app.js`:
+
+```javascript
+// Configuration
+const MAYBE_DISTANCE_MILES = 2; // Show "maybe" if within this distance of coverage
+```
+
+Set to `0` to disable the "maybe" feature entirely.
+
 ### Google Places API Key
 
 The API key is configured via Vercel environment variable:
@@ -88,7 +100,8 @@ npm run convert -- /path/to/new-coverage.kml
 3. **Selection** - User selects address, we extract lat/lng from Places geometry
 4. **Spatial Query** - RBush finds candidate polygons whose bounding boxes contain the point
 5. **Point-in-Polygon** - Turf.js checks if point is inside each candidate polygon
-6. **Result** - Display "Service available" or "Not in coverage area"
+6. **Near-Miss Check** - If not in coverage, calculates distance to nearest polygon boundary
+7. **Result** - Display "Service available", "Service may be available" (if within 2 miles), or "Not in coverage area"
 
 ### Performance
 
@@ -133,8 +146,15 @@ npx playwright test tests/specific-addresses.spec.js
 ### Test Coverage
 
 - **SF in coverage**: 1 Market St, 28 W Portal Ave
-- **SF out of coverage**: 153 Granville Way, 1054 Taraval St
+- **SF near coverage (maybe)**: 153 Granville Way (within 2 miles of boundary)
+- **SF out of coverage**: 1054 Taraval St
 - **Outside service area**: Los Angeles addresses
+
+Run "maybe" tests against local dev server:
+```bash
+npm run dev &
+npx playwright test tests/maybe-coverage.spec.js
+```
 
 ## Deployment
 
@@ -149,6 +169,8 @@ Deployed automatically to Vercel on push to `main`.
 |---------|-------|
 | Primary Blue | `#0071bc` |
 | Success Green | `#52CF8F` |
+| Maybe Amber | `#f0ad4e` |
+| Error Red | `#e74c3c` |
 | Heading Font | Lexend |
 | Body Font | Work Sans |
 | Border Radius | 5px |

@@ -5,6 +5,8 @@
   --uwc-primary-dark: #005a96;
   --uwc-success: #52CF8F;
   --uwc-success-bg: #e8f8f0;
+  --uwc-maybe: #f0ad4e;
+  --uwc-maybe-bg: #fef9e7;
   --uwc-error: #e74c3c;
   --uwc-error-bg: #fdf2f2;
   --uwc-text: #333333;
@@ -152,6 +154,11 @@
   border: 1px solid var(--uwc-error);
 }
 
+.uwc-result.uwc-result--maybe {
+  background: var(--uwc-maybe-bg);
+  border: 1px solid var(--uwc-maybe);
+}
+
 .uwc-result-icon {
   font-size: 24px;
   margin-bottom: 8px;
@@ -170,6 +177,10 @@
 
 .uwc-result--error .uwc-result-title {
   color: var(--uwc-error);
+}
+
+.uwc-result--maybe .uwc-result-title {
+  color: #c68a00;
 }
 
 .uwc-result-message {
