@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
  *   SITE_URL=http://localhost:5173 npx playwright test tests/maybe-coverage.spec.js
  */
 
-const SITE_URL = process.env.SITE_URL || 'http://localhost:5173';
+const SITE_URL = process.env.SITE_URL || 'https://unwired-coverage.briancline.co';
 
 test.describe('Maybe Coverage Tests', () => {
   test.beforeEach(async ({ page }) => {

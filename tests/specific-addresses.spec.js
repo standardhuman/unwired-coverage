@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const SITE_URL = 'https://unwired-coverage.briancline.co';
 
 test.describe('Specific Address Tests', () => {
-  test('153 Granville Way SF should be OUT of coverage', async ({ page }) => {
+  test('153 Granville Way SF should show MAYBE coverage (near boundary)', async ({ page }) => {
     page.on('console', msg => console.log(`PAGE: ${msg.type()}: ${msg.text()}`));
 
     await page.goto(SITE_URL);
@@ -27,7 +27,8 @@ test.describe('Specific Address Tests', () => {
 
     const result = page.locator('#result');
     await expect(result).toBeVisible({ timeout: 5000 });
-    await expect(result).toContainText('Not currently in our service area');
+    // This address is ~0.03 miles from coverage boundary, so shows "maybe"
+    await expect(result).toContainText('Service may be available');
 
     await page.screenshot({ path: 'tests/granville-result.png', fullPage: true });
   });
@@ -61,7 +62,7 @@ test.describe('Specific Address Tests', () => {
     await page.screenshot({ path: 'tests/wportal-result.png', fullPage: true });
   });
 
-  test('1054 Taraval St SF should be OUT of coverage', async ({ page }) => {
+  test('1054 Taraval St SF should show MAYBE coverage (near boundary)', async ({ page }) => {
     page.on('console', msg => console.log(`PAGE: ${msg.type()}: ${msg.text()}`));
 
     await page.goto(SITE_URL);
@@ -84,7 +85,8 @@ test.describe('Specific Address Tests', () => {
 
     const result = page.locator('#result');
     await expect(result).toBeVisible({ timeout: 5000 });
-    await expect(result).toContainText('Not currently in our service area');
+    // This address is ~0.14 miles from coverage boundary, so shows "maybe"
+    await expect(result).toContainText('Service may be available');
 
     await page.screenshot({ path: 'tests/taraval-result.png', fullPage: true });
   });
