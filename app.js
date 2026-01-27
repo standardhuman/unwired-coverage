@@ -54,7 +54,7 @@ async function init() {
  * Load and index coverage polygons
  */
 async function loadCoverageData() {
-  const response = await fetch('/coverage.json');
+  const response = await fetch('./coverage.json');
   if (!response.ok) {
     throw new Error(`Failed to load coverage data: ${response.status}`);
   }
