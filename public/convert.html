@@ -384,10 +384,14 @@
           return;
         }
 
+        const INITIAL_COUNT = 3;
+        const entries = [...fileMap.entries()];
         const ul = document.createElement('ul');
         ul.className = 'file-list';
-        for (const [filename, info] of fileMap) {
+        entries.forEach(([filename, info], idx) => {
           const li = document.createElement('li');
+          if (idx >= INITIAL_COUNT) li.classList.add('hidden');
+          li.dataset.extraFile = idx >= INITIAL_COUNT ? '1' : '';
           const rawUrl = `https://raw.githubusercontent.com/${REPO}/main/${filename}`;
           li.innerHTML = `
             <div>
@@ -397,9 +401,25 @@
             <div class="meta">${info.date.toLocaleDateString()}</div>
           `;
           ul.appendChild(li);
-        }
+        });
         container.innerHTML = '';
         container.appendChild(ul);
+
+        if (entries.length > INITIAL_COUNT) {
+          const moreBtn = document.createElement('button');
+          moreBtn.className = 'toggle-btn';
+          moreBtn.style.marginTop = '0.75rem';
+          moreBtn.textContent = `Show ${entries.length - INITIAL_COUNT} more files`;
+          moreBtn.addEventListener('click', () => {
+            const extras = ul.querySelectorAll('[data-extra-file="1"]');
+            const showing = !extras[0].classList.contains('hidden');
+            extras.forEach(li => li.classList.toggle('hidden'));
+            moreBtn.textContent = showing
+              ? `Show ${entries.length - INITIAL_COUNT} more files`
+              : 'Show fewer files';
+          });
+          container.appendChild(moreBtn);
+        }
       } catch (err) {
         container.innerHTML = `<p style="color:#991b1b">Error loading changes: ${err.message}</p>`;
       }
