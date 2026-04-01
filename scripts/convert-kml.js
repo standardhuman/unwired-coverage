@@ -32,13 +32,15 @@ console.log(`Found ${placemarks.length} polygons`);
 /**
  * Parse coordinate string to array of [lng, lat] pairs
  */
+const PRECISION = 5; // ~1 meter accuracy
+
 function parseCoordinates(coordString) {
   return coordString
     .trim()
     .split(/\s+/)
     .map(coord => {
       const [lng, lat] = coord.split(',').map(Number);
-      return [lng, lat];
+      return [+lng.toFixed(PRECISION), +lat.toFixed(PRECISION)];
     });
 }
 
@@ -56,7 +58,12 @@ function calculateBbox(coords) {
     if (lat > maxLat) maxLat = lat;
   }
 
-  return { minLng, minLat, maxLng, maxLat };
+  return {
+    minLng: +minLng.toFixed(PRECISION),
+    minLat: +minLat.toFixed(PRECISION),
+    maxLng: +maxLng.toFixed(PRECISION),
+    maxLat: +maxLat.toFixed(PRECISION),
+  };
 }
 
 const features = [];

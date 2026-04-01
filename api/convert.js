@@ -8,13 +8,15 @@ export const config = {
   },
 };
 
+const PRECISION = 5;
+
 function parseCoordinates(coordString) {
   return String(coordString)
     .trim()
     .split(/\s+/)
     .map(coord => {
       const [lng, lat] = coord.split(',').map(Number);
-      return [lng, lat];
+      return [+lng.toFixed(PRECISION), +lat.toFixed(PRECISION)];
     });
 }
 
@@ -27,7 +29,12 @@ function calculateBbox(coords) {
     if (lat < minLat) minLat = lat;
     if (lat > maxLat) maxLat = lat;
   }
-  return { minLng, minLat, maxLng, maxLat };
+  return {
+    minLng: +minLng.toFixed(PRECISION),
+    minLat: +minLat.toFixed(PRECISION),
+    maxLng: +maxLng.toFixed(PRECISION),
+    maxLat: +maxLat.toFixed(PRECISION),
+  };
 }
 
 function extractPolygons(placemark) {

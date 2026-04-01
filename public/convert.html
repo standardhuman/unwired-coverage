@@ -318,10 +318,12 @@
       convertStatus.hidden = true;
     }
 
+    const PRECISION = 5; // ~1 meter accuracy, significantly reduces file size
+
     function parseCoordinates(coordString) {
       return String(coordString).trim().split(/\s+/).map(coord => {
         const [lng, lat] = coord.split(',').map(Number);
-        return [lng, lat];
+        return [+lng.toFixed(PRECISION), +lat.toFixed(PRECISION)];
       });
     }
 
@@ -333,7 +335,12 @@
         if (lat < minLat) minLat = lat;
         if (lat > maxLat) maxLat = lat;
       }
-      return { minLng, minLat, maxLng, maxLat };
+      return {
+        minLng: +minLng.toFixed(PRECISION),
+        minLat: +minLat.toFixed(PRECISION),
+        maxLng: +maxLng.toFixed(PRECISION),
+        maxLat: +maxLat.toFixed(PRECISION),
+      };
     }
 
     function extractPolygons(placemark) {
@@ -400,9 +407,13 @@
     async function loadRecentFiles() {
       const container = document.getElementById('recent-files');
       try {
-        // Fetch last 10 commits with file details in parallel
-        const listResp = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=10`);
-        if (!listResp.ok) throw new Error('Could not fetch commits (rate limit?)');
+        // Fetch last 5 commits with file details in parallel
+        const listResp = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=5`);
+        if (!listResp.ok) {
+          const remaining = listResp.headers.get('x-ratelimit-remaining');
+          if (remaining === '0') throw new Error('GitHub API rate limit reached. Try again in a few minutes.');
+          throw new Error('Could not fetch commits');
+        }
         const commits = await listResp.json();
 
         const details = await Promise.all(
