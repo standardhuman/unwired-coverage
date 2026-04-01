@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Work+Sans:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/fast-xml-parser/lib/fxparser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fast-xml-parser/4.5.0/fxparser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -415,28 +415,32 @@
     async function loadRecentFiles() {
       const container = document.getElementById('recent-files');
       try {
-        const resp = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=10`);
-        if (!resp.ok) throw new Error('Could not fetch commits');
-        const commits = await resp.json();
+        // Fetch last 10 commits with file details in parallel
+        const listResp = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=10`);
+        if (!listResp.ok) throw new Error('Could not fetch commits (rate limit?)');
+        const commits = await listResp.json();
 
-        // Collect unique changed files across recent commits
+        const details = await Promise.all(
+          commits.map(c => fetch(`https://api.github.com/repos/${REPO}/commits/${c.sha}`)
+            .then(r => r.ok ? r.json() : null)
+            .catch(() => null))
+        );
+
         const fileMap = new Map();
-        for (const commit of commits) {
-          const detailResp = await fetch(commit.url);
-          if (!detailResp.ok) continue;
-          const detail = await detailResp.json();
+        details.forEach((detail, i) => {
+          if (!detail) return;
           for (const file of (detail.files || [])) {
             if (!fileMap.has(file.filename)) {
               fileMap.set(file.filename, {
                 name: file.filename,
                 status: file.status,
-                commitMsg: commit.commit.message.split('\n')[0],
-                date: new Date(commit.commit.committer.date),
-                sha: commit.sha.slice(0, 7),
+                commitMsg: commits[i].commit.message.split('\n')[0],
+                date: new Date(commits[i].commit.committer.date),
+                sha: commits[i].sha.slice(0, 7),
               });
             }
           }
-        }
+        });
 
         if (fileMap.size === 0) {
           container.innerHTML = '<p style="color:#999">No recent changes found.</p>';
