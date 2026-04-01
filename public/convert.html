@@ -222,8 +222,8 @@
 
     <!-- Recent Changes -->
     <div class="card">
-      <button class="toggle-btn" id="recent-toggle">View and download recently changed files</button>
-      <div id="recent-files" class="hidden" style="margin-top:1rem">
+      <h2>Recently Changed Files</h2>
+      <div id="recent-files">
         <div class="loading-spinner">Loading recent changes...</div>
       </div>
     </div>
@@ -284,23 +284,8 @@
       }
     }
 
-    // ── Recent Files Toggle ──
-    const recentToggle = document.getElementById('recent-toggle');
-    const recentFiles = document.getElementById('recent-files');
-    let recentLoaded = false;
-
-    recentToggle.addEventListener('click', () => {
-      const isHidden = recentFiles.classList.toggle('hidden');
-      recentToggle.textContent = isHidden
-        ? 'View and download recently changed files'
-        : 'Hide recently changed files';
-      if (!isHidden && !recentLoaded) {
-        recentLoaded = true;
-        loadRecentFiles();
-      }
-    });
-
     function init() {
+      loadRecentFiles();
       loadUploads();
     }
 
