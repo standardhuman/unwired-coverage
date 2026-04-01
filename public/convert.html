@@ -140,10 +140,68 @@
     .upload-list {
       margin-top: 1rem;
     }
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 2.5rem;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+    .login-card h1 {
+      font-family: 'Lexend', sans-serif;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    .login-card input {
+      font-family: 'Work Sans', sans-serif;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .login-card .error { color: #991b1b; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .hidden { display: none !important; }
+    .toggle-btn {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      cursor: pointer;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      width: 100%;
+      border-radius: 8px;
+      font-family: 'Lexend', sans-serif;
+      transition: background 0.2s;
+    }
+    .toggle-btn:hover { background: #e5e7eb; }
   </style>
 </head>
 <body>
-  <div class="container">
+  <!-- Password gate -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+      <h1>Unwired File Hub</h1>
+      <p class="desc">Enter the password to continue.</p>
+      <input type="password" id="password-input" placeholder="Password" autofocus>
+      <div class="error hidden" id="login-error">Incorrect password</div>
+      <button id="login-btn">Enter</button>
+    </div>
+  </div>
+
+  <div class="container hidden" id="main-content">
     <h1 class="page-title">Unwired Coverage File Hub</h1>
 
     <!-- KML Converter -->
@@ -163,9 +221,8 @@
 
     <!-- Recent Changes -->
     <div class="card">
-      <h2>Recently Changed Files</h2>
-      <p class="desc">Download the latest versions of recently updated project files.</p>
-      <div id="recent-files">
+      <button class="toggle-btn" id="recent-toggle">View and download recently changed files</button>
+      <div id="recent-files" class="hidden" style="margin-top:1rem">
         <div class="loading-spinner">Loading recent changes...</div>
       </div>
     </div>
@@ -193,9 +250,59 @@
 
       <div class="upload-list" id="upload-list"></div>
     </div>
-  </div>
+  </div><!-- end main-content -->
 
   <script>
+    // ── Password Gate ──
+    const PASSWORD = 'pocket';
+    const loginOverlay = document.getElementById('login-overlay');
+    const mainContent = document.getElementById('main-content');
+    const passwordInput = document.getElementById('password-input');
+    const loginBtn = document.getElementById('login-btn');
+    const loginError = document.getElementById('login-error');
+
+    if (sessionStorage.getItem('authed') === '1') {
+      loginOverlay.classList.add('hidden');
+      mainContent.classList.remove('hidden');
+      init();
+    }
+
+    loginBtn.addEventListener('click', tryLogin);
+    passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+    function tryLogin() {
+      if (passwordInput.value === PASSWORD) {
+        sessionStorage.setItem('authed', '1');
+        loginOverlay.classList.add('hidden');
+        mainContent.classList.remove('hidden');
+        init();
+      } else {
+        loginError.classList.remove('hidden');
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    }
+
+    // ── Recent Files Toggle ──
+    const recentToggle = document.getElementById('recent-toggle');
+    const recentFiles = document.getElementById('recent-files');
+    let recentLoaded = false;
+
+    recentToggle.addEventListener('click', () => {
+      const isHidden = recentFiles.classList.toggle('hidden');
+      recentToggle.textContent = isHidden
+        ? 'View and download recently changed files'
+        : 'Hide recently changed files';
+      if (!isHidden && !recentLoaded) {
+        recentLoaded = true;
+        loadRecentFiles();
+      }
+    });
+
+    function init() {
+      loadUploads();
+    }
+
     // ── KML Converter ──
     const kmlDropZone = document.getElementById('kml-drop-zone');
     const kmlFileInput = document.getElementById('kml-file-input');
@@ -298,8 +405,6 @@
       }
     }
 
-    loadRecentFiles();
-
     // ── File Upload ──
     const uploadDropZone = document.getElementById('upload-drop-zone');
     const uploadFileInput = document.getElementById('upload-file-input');
@@ -355,8 +460,6 @@
         uploadList.appendChild(ul);
       } catch (e) { /* silently fail on list */ }
     }
-
-    loadUploads();
 
     // ── Helpers ──
     function showMsg(el, msg, type) {
