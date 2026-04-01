@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KML to Coverage Converter | Unwired</title>
+  <title>File Hub | Unwired Coverage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Work+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -13,34 +13,42 @@
       font-family: 'Work Sans', sans-serif;
       background: #f5f5f5;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .page-title {
+      font-family: 'Lexend', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      text-align: center;
     }
     .card {
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      padding: 2.5rem;
-      max-width: 520px;
-      width: 100%;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
     }
-    h1 {
+    h2 {
       font-family: 'Lexend', sans-serif;
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
     p.desc {
       color: #666;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       line-height: 1.5;
+      font-size: 0.9rem;
     }
     .drop-zone {
       border: 2px dashed #ccc;
       border-radius: 8px;
-      padding: 2.5rem 1.5rem;
+      padding: 2rem 1.5rem;
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
@@ -50,21 +58,15 @@
       border-color: #2563eb;
       background: #eff6ff;
     }
-    .drop-zone .label {
-      font-size: 1rem;
-      color: #444;
-    }
-    .drop-zone .hint {
-      font-size: 0.85rem;
-      color: #999;
-      margin-top: 0.5rem;
-    }
+    .drop-zone .label { font-size: 1rem; color: #444; }
+    .drop-zone .hint { font-size: 0.85rem; color: #999; margin-top: 0.5rem; }
     .file-name {
       font-weight: 500;
       color: #2563eb;
       margin-bottom: 1rem;
+      font-size: 0.9rem;
     }
-    button {
+    button, .btn {
       font-family: 'Lexend', sans-serif;
       background: #2563eb;
       color: #fff;
@@ -75,9 +77,18 @@
       cursor: pointer;
       width: 100%;
       transition: background 0.2s;
+      text-align: center;
+      text-decoration: none;
+      display: block;
     }
-    button:hover:not(:disabled) { background: #1d4ed8; }
+    button:hover:not(:disabled), .btn:hover { background: #1d4ed8; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+    .btn-secondary:hover { background: #e5e7eb; }
     .status {
       margin-top: 1rem;
       padding: 1rem;
@@ -89,103 +100,278 @@
     .status.error { background: #fef2f2; color: #991b1b; }
     .status.working { background: #eff6ff; color: #1e40af; }
     input[type="file"] { display: none; }
+    .file-list {
+      list-style: none;
+      padding: 0;
+    }
+    .file-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.9rem;
+    }
+    .file-list li:last-child { border-bottom: none; }
+    .file-list a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .file-list a:hover { text-decoration: underline; }
+    .file-list .meta {
+      color: #999;
+      font-size: 0.8rem;
+    }
+    .commit-msg {
+      color: #666;
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+    .commit-date {
+      color: #999;
+      font-size: 0.75rem;
+    }
+    .loading-spinner {
+      color: #999;
+      font-size: 0.9rem;
+      padding: 1rem 0;
+    }
+    .upload-list {
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>KML Coverage Converter</h1>
-    <p class="desc">Upload a KML file to convert it to coverage.json for the address checker.</p>
+  <div class="container">
+    <h1 class="page-title">Unwired Coverage File Hub</h1>
 
-    <div class="drop-zone" id="drop-zone">
-      <div class="label">Drop your .kml file here or click to browse</div>
-      <div class="hint">Accepts .kml files up to 50 MB</div>
+    <!-- KML Converter -->
+    <div class="card">
+      <h2>KML Converter</h2>
+      <p class="desc">Upload a KML file to convert it to coverage.json for the address checker.</p>
+
+      <div class="drop-zone" id="kml-drop-zone">
+        <div class="label">Drop your .kml file here or click to browse</div>
+        <div class="hint">Accepts .kml files up to 50 MB</div>
+      </div>
+      <input type="file" id="kml-file-input" accept=".kml">
+      <div class="file-name" id="kml-file-name" hidden></div>
+      <button id="convert-btn" disabled>Convert & Download</button>
+      <div class="status" id="convert-status" hidden></div>
     </div>
-    <input type="file" id="file-input" accept=".kml">
 
-    <div class="file-name" id="file-name" hidden></div>
+    <!-- Recent Changes -->
+    <div class="card">
+      <h2>Recently Changed Files</h2>
+      <p class="desc">Download the latest versions of recently updated project files.</p>
+      <div id="recent-files">
+        <div class="loading-spinner">Loading recent changes...</div>
+      </div>
+    </div>
 
-    <button id="convert-btn" disabled>Convert &amp; Download</button>
+    <!-- Full Repo Download -->
+    <div class="card">
+      <h2>Full Project Download</h2>
+      <p class="desc">Download the entire project as a ZIP file.</p>
+      <a class="btn btn-secondary" href="https://github.com/standardhuman/unwired-coverage/archive/refs/heads/main.zip">
+        Download ZIP
+      </a>
+    </div>
 
-    <div class="status" id="status" hidden></div>
+    <!-- File Upload -->
+    <div class="card">
+      <h2>Share Files with Brian</h2>
+      <p class="desc">Drop any files here that you'd like Brian to look at.</p>
+
+      <div class="drop-zone" id="upload-drop-zone">
+        <div class="label">Drop files here or click to browse</div>
+        <div class="hint">Any file type, up to 50 MB</div>
+      </div>
+      <input type="file" id="upload-file-input" multiple>
+      <div class="status" id="upload-status" hidden></div>
+
+      <div class="upload-list" id="upload-list"></div>
+    </div>
   </div>
 
   <script>
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
-    const fileNameEl = document.getElementById('file-name');
+    // ── KML Converter ──
+    const kmlDropZone = document.getElementById('kml-drop-zone');
+    const kmlFileInput = document.getElementById('kml-file-input');
+    const kmlFileName = document.getElementById('kml-file-name');
     const convertBtn = document.getElementById('convert-btn');
-    const statusEl = document.getElementById('status');
+    const convertStatus = document.getElementById('convert-status');
+    let kmlFile = null;
 
-    let selectedFile = null;
-
-    dropZone.addEventListener('click', () => fileInput.click());
-
-    dropZone.addEventListener('dragover', e => {
+    kmlDropZone.addEventListener('click', () => kmlFileInput.click());
+    kmlDropZone.addEventListener('dragover', e => { e.preventDefault(); kmlDropZone.classList.add('drag-over'); });
+    kmlDropZone.addEventListener('dragleave', () => kmlDropZone.classList.remove('drag-over'));
+    kmlDropZone.addEventListener('drop', e => {
       e.preventDefault();
-      dropZone.classList.add('drag-over');
+      kmlDropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files.length) selectKml(e.dataTransfer.files[0]);
     });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      if (e.dataTransfer.files.length) selectFile(e.dataTransfer.files[0]);
-    });
+    kmlFileInput.addEventListener('change', () => { if (kmlFileInput.files.length) selectKml(kmlFileInput.files[0]); });
 
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files.length) selectFile(fileInput.files[0]);
-    });
-
-    function selectFile(file) {
-      if (!file.name.endsWith('.kml')) {
-        showStatus('Please select a .kml file.', 'error');
-        return;
-      }
-      selectedFile = file;
-      fileNameEl.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
-      fileNameEl.hidden = false;
+    function selectKml(file) {
+      if (!file.name.endsWith('.kml')) { showMsg(convertStatus, 'Please select a .kml file.', 'error'); return; }
+      kmlFile = file;
+      kmlFileName.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+      kmlFileName.hidden = false;
       convertBtn.disabled = false;
-      statusEl.hidden = true;
+      convertStatus.hidden = true;
     }
 
     convertBtn.addEventListener('click', async () => {
-      if (!selectedFile) return;
+      if (!kmlFile) return;
       convertBtn.disabled = true;
-      showStatus('Reading and converting...', 'working');
-
+      showMsg(convertStatus, 'Reading and converting...', 'working');
       try {
-        const kml = await selectedFile.text();
+        const kml = await kmlFile.text();
         const resp = await fetch('/api/convert', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ kml }),
         });
-
-        if (!resp.ok) {
-          const err = await resp.json();
-          throw new Error(err.error || 'Conversion failed');
-        }
-
+        if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Conversion failed'); }
         const blob = await resp.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'coverage.json';
-        a.click();
-        URL.revokeObjectURL(url);
-
-        const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
-        showStatus('Done! coverage.json downloaded (' + sizeMB + ' MB)', 'success');
+        downloadBlob(blob, 'coverage.json');
+        showMsg(convertStatus, 'Done! coverage.json downloaded (' + (blob.size / 1024 / 1024).toFixed(2) + ' MB)', 'success');
       } catch (err) {
-        showStatus('Error: ' + err.message, 'error');
-      } finally {
-        convertBtn.disabled = false;
-      }
+        showMsg(convertStatus, 'Error: ' + err.message, 'error');
+      } finally { convertBtn.disabled = false; }
     });
 
-    function showStatus(msg, type) {
-      statusEl.textContent = msg;
-      statusEl.className = 'status ' + type;
-      statusEl.hidden = false;
+    // ── Recent Changes ──
+    const REPO = 'standardhuman/unwired-coverage';
+
+    async function loadRecentFiles() {
+      const container = document.getElementById('recent-files');
+      try {
+        const resp = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=10`);
+        if (!resp.ok) throw new Error('Could not fetch commits');
+        const commits = await resp.json();
+
+        // Collect unique changed files across recent commits
+        const fileMap = new Map();
+        for (const commit of commits) {
+          const detailResp = await fetch(commit.url);
+          if (!detailResp.ok) continue;
+          const detail = await detailResp.json();
+          for (const file of (detail.files || [])) {
+            if (!fileMap.has(file.filename)) {
+              fileMap.set(file.filename, {
+                name: file.filename,
+                status: file.status,
+                commitMsg: commit.commit.message.split('\n')[0],
+                date: new Date(commit.commit.committer.date),
+                sha: commit.sha.slice(0, 7),
+              });
+            }
+          }
+        }
+
+        if (fileMap.size === 0) {
+          container.innerHTML = '<p style="color:#999">No recent changes found.</p>';
+          return;
+        }
+
+        const ul = document.createElement('ul');
+        ul.className = 'file-list';
+        for (const [filename, info] of fileMap) {
+          const li = document.createElement('li');
+          const rawUrl = `https://raw.githubusercontent.com/${REPO}/main/${filename}`;
+          li.innerHTML = `
+            <div>
+              <a href="${rawUrl}" download>${filename}</a>
+              <div class="commit-msg">${info.sha} - ${info.commitMsg}</div>
+            </div>
+            <div class="meta">${info.date.toLocaleDateString()}</div>
+          `;
+          ul.appendChild(li);
+        }
+        container.innerHTML = '';
+        container.appendChild(ul);
+      } catch (err) {
+        container.innerHTML = `<p style="color:#991b1b">Error loading changes: ${err.message}</p>`;
+      }
+    }
+
+    loadRecentFiles();
+
+    // ── File Upload ──
+    const uploadDropZone = document.getElementById('upload-drop-zone');
+    const uploadFileInput = document.getElementById('upload-file-input');
+    const uploadStatus = document.getElementById('upload-status');
+    const uploadList = document.getElementById('upload-list');
+
+    uploadDropZone.addEventListener('click', () => uploadFileInput.click());
+    uploadDropZone.addEventListener('dragover', e => { e.preventDefault(); uploadDropZone.classList.add('drag-over'); });
+    uploadDropZone.addEventListener('dragleave', () => uploadDropZone.classList.remove('drag-over'));
+    uploadDropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadDropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
+    });
+    uploadFileInput.addEventListener('change', () => { if (uploadFileInput.files.length) uploadFiles(uploadFileInput.files); });
+
+    async function uploadFiles(files) {
+      showMsg(uploadStatus, `Uploading ${files.length} file(s)...`, 'working');
+      try {
+        for (const file of files) {
+          const resp = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'x-filename': file.name },
+            body: file,
+          });
+          if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Upload failed'); }
+        }
+        showMsg(uploadStatus, `${files.length} file(s) uploaded successfully!`, 'success');
+        loadUploads();
+      } catch (err) {
+        showMsg(uploadStatus, 'Error: ' + err.message, 'error');
+      }
+    }
+
+    async function loadUploads() {
+      try {
+        const resp = await fetch('/api/upload');
+        if (!resp.ok) return;
+        const files = await resp.json();
+        if (files.length === 0) { uploadList.innerHTML = ''; return; }
+
+        const ul = document.createElement('ul');
+        ul.className = 'file-list';
+        for (const f of files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))) {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <a href="${f.url}" target="_blank">${f.name}</a>
+            <span class="meta">${new Date(f.uploadedAt).toLocaleDateString()}</span>
+          `;
+          ul.appendChild(li);
+        }
+        uploadList.innerHTML = '<h3 style="font-size:0.9rem;margin-bottom:0.5rem;color:#666">Previously uploaded</h3>';
+        uploadList.appendChild(ul);
+      } catch (e) { /* silently fail on list */ }
+    }
+
+    loadUploads();
+
+    // ── Helpers ──
+    function showMsg(el, msg, type) {
+      el.textContent = msg;
+      el.className = 'status ' + type;
+      el.hidden = false;
+    }
+
+    function downloadBlob(blob, name) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
     }
   </script>
 </body>
