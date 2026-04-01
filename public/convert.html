@@ -284,6 +284,8 @@
       }
     }
 
+    const REPO = 'standardhuman/unwired-coverage';
+
     function init() {
       loadRecentFiles();
       loadUploads();
@@ -395,8 +397,6 @@
     });
 
     // ── Recent Changes ──
-    const REPO = 'standardhuman/unwired-coverage';
-
     async function loadRecentFiles() {
       const container = document.getElementById('recent-files');
       try {
