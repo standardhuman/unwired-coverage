@@ -22,9 +22,10 @@ const parser = new XMLParser({
 
 const parsed = parser.parse(kmlContent);
 
-// Navigate to Placemarks
-const folder = parsed.kml.Document.Folder;
-const placemarks = Array.isArray(folder.Placemark) ? folder.Placemark : [folder.Placemark];
+// Navigate to Placemarks - handle both Folder-wrapped and direct Document placemarks
+const doc = parsed.kml.Document;
+const container = doc.Folder || doc;
+const placemarks = Array.isArray(container.Placemark) ? container.Placemark : [container.Placemark];
 
 console.log(`Found ${placemarks.length} polygons`);
 
@@ -61,9 +62,35 @@ function calculateBbox(coords) {
 const features = [];
 let polygonsWithHoles = 0;
 
+/**
+ * Extract Polygon elements from a placemark, handling both direct
+ * Polygon and MultiGeometry wrapping.
+ */
+function extractPolygons(placemark) {
+  if (placemark.Polygon) {
+    return Array.isArray(placemark.Polygon) ? placemark.Polygon : [placemark.Polygon];
+  }
+  if (placemark.MultiGeometry) {
+    const mg = placemark.MultiGeometry;
+    if (mg.Polygon) {
+      return Array.isArray(mg.Polygon) ? mg.Polygon : [mg.Polygon];
+    }
+  }
+  return [];
+}
+
+let featureId = 0;
+
 for (let i = 0; i < placemarks.length; i++) {
   const placemark = placemarks[i];
-  const polygon = placemark.Polygon;
+  const polygons = extractPolygons(placemark);
+
+  if (polygons.length === 0) {
+    console.warn(`Skipping placemark ${i}: no Polygon found (keys: ${Object.keys(placemark).join(', ')})`);
+    continue;
+  }
+
+  for (const polygon of polygons) {
 
   // Parse outer boundary
   const outerRing = parseCoordinates(
@@ -93,10 +120,12 @@ for (let i = 0; i < placemarks.length; i++) {
   }
 
   features.push({
-    id: i,
+    id: featureId++,
     bbox,
     coordinates,
   });
+
+  } // end for polygon in polygons
 }
 
 console.log(`Polygons with holes: ${polygonsWithHoles}`);
