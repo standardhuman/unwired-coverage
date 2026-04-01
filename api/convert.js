@@ -60,8 +60,17 @@ export default function handler(req, res) {
     });
 
     const parsed = parser.parse(kmlContent);
+    if (!parsed.kml) {
+      return res.status(400).json({ error: 'Invalid KML file: missing <kml> root element' });
+    }
+    if (!parsed.kml.Document) {
+      return res.status(400).json({ error: 'Invalid KML file: missing <Document> element' });
+    }
     const doc = parsed.kml.Document;
     const container = doc.Folder || doc;
+    if (!container.Placemark) {
+      return res.status(400).json({ error: 'No Placemarks found in KML file' });
+    }
     const placemarks = Array.isArray(container.Placemark) ? container.Placemark : [container.Placemark];
 
     const features = [];
