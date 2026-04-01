@@ -32,16 +32,23 @@ console.log(`Found ${placemarks.length} polygons`);
 /**
  * Parse coordinate string to array of [lng, lat] pairs
  */
-const PRECISION = 5; // ~1 meter accuracy
+const PRECISION = 4; // ~11 meter accuracy
 
 function parseCoordinates(coordString) {
-  return coordString
+  const raw = coordString
     .trim()
     .split(/\s+/)
     .map(coord => {
       const [lng, lat] = coord.split(',').map(Number);
       return [+lng.toFixed(PRECISION), +lat.toFixed(PRECISION)];
     });
+  const deduped = [raw[0]];
+  for (let i = 1; i < raw.length; i++) {
+    if (raw[i][0] !== raw[i-1][0] || raw[i][1] !== raw[i-1][1]) {
+      deduped.push(raw[i]);
+    }
+  }
+  return deduped;
 }
 
 /**

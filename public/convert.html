@@ -313,13 +313,21 @@
       convertStatus.hidden = true;
     }
 
-    const PRECISION = 5; // ~1 meter accuracy, significantly reduces file size
+    const PRECISION = 4; // ~11 meter accuracy, good balance of size vs precision
 
     function parseCoordinates(coordString) {
-      return String(coordString).trim().split(/\s+/).map(coord => {
+      const raw = String(coordString).trim().split(/\s+/).map(coord => {
         const [lng, lat] = coord.split(',').map(Number);
         return [+lng.toFixed(PRECISION), +lat.toFixed(PRECISION)];
       });
+      // Deduplicate consecutive identical points after rounding
+      const deduped = [raw[0]];
+      for (let i = 1; i < raw.length; i++) {
+        if (raw[i][0] !== raw[i-1][0] || raw[i][1] !== raw[i-1][1]) {
+          deduped.push(raw[i]);
+        }
+      }
+      return deduped;
     }
 
     function calculateBbox(coords) {
